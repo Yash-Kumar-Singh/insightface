@@ -56,9 +56,29 @@ class FaceAnalysis:
                 model.prepare(ctx_id)
 
     def get(self, img, max_num=0, det_metric='default'):
-        bboxes, kpss = self.det_model.detect(img,
-                                             max_num=max_num,
-                                             metric=det_metric)
+        
+        # Detect faces using the detection model
+        bboxes, kpss = self.det_model.detect(img, 
+                                        max_num=max_num,
+                                        metric='default')
+        
+        # Initialize variables for finding dominant face
+        dominant_ind, dominant_per = 10000, 10000
+        
+        # Process each detected face
+        for i in range(len(bboxes)):
+            left, top, right, bottom, score = bboxes[i]
+            perimeter = (right - left) + (bottom - top)
+            
+            # Consider only faces with perimeter>180
+            if (left < dominant_per) and (perimeter > 180):
+                dominant_per = left
+                dominant_ind = i
+        
+        # Filter to keep only the dominant face
+        bboxes = np.array([bboxes[dominant_ind]])
+        kpss = np.array([kpss[dominant_ind]])
+
         if bboxes.shape[0] == 0:
             return []
         ret = []
