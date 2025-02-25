@@ -72,7 +72,7 @@ class FaceAnalysis:
                 
                 # Consider only faces with perimeter>180
                 if (left < dominant_left) and (perimeter > 180):
-                    dominant_per = left
+                    dominant_left = left
                     dominant_ind = i
             
             # Filter to keep only the dominant face
