@@ -94,7 +94,7 @@ class FaceAnalysis:
             kpss = np.array([kpss[dominant_ind]])
 
         else:
-            raise('Invalid op_type!')
+            raise Exception('Invalid op_type!')
                     
         if bboxes.shape[0] == 0:
             return []
