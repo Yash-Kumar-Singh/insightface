@@ -55,30 +55,47 @@ class FaceAnalysis:
             else:
                 model.prepare(ctx_id)
 
-    def get(self, img, max_num=0, det_metric='default'):
-        
+    def get(self, img, op_type= 'fr_trigger',max_num=0, det_metric='default'):
+
         # Detect faces using the detection model
         bboxes, kpss = self.det_model.detect(img, 
                                         max_num=max_num,
                                         metric='default')
-        
+        if op_type=='fr_trigger':
         # Initialize variables for finding dominant face
-        dominant_ind, dominant_per = 10000, 10000
-        
-        # Process each detected face
-        for i in range(len(bboxes)):
-            left, top, right, bottom, score = bboxes[i]
-            perimeter = (right - left) + (bottom - top)
+            dominant_ind, dominant_left = 10000, 10000
             
-            # Consider only faces with perimeter>180
-            if (left < dominant_per) and (perimeter > 180):
-                dominant_per = left
-                dominant_ind = i
-        
-        # Filter to keep only the dominant face
-        bboxes = np.array([bboxes[dominant_ind]])
-        kpss = np.array([kpss[dominant_ind]])
+            # Process each detected face
+            for i in range(len(bboxes)):
+                left, top, right, bottom, score = bboxes[i]
+                perimeter = (right - left) + (bottom - top)
+                
+                # Consider only faces with perimeter>180
+                if (left < dominant_left) and (perimeter > 180):
+                    dominant_per = left
+                    dominant_ind = i
+            
+            # Filter to keep only the dominant face
+            bboxes = np.array([bboxes[dominant_ind]])
+            kpss = np.array([kpss[dominant_ind]])
 
+        elif op_type=='onboarding':
+
+            dominant_ind, dominant_per = 10000, -10000
+            for i in range(len(bboxes)):
+                left, top, right, bottom, score = bboxes[i]
+                perimeter = (right - left) + (bottom - top)
+
+                if (perimeter > dominant_per):    # For onboarding, dominant face will be with largest perimeter
+                    dominant_per = perimeter
+                    dominant_ind = i
+
+            bboxes = np.array([bboxes[dominant_ind]])
+            kpss = np.array([kpss[dominant_ind]])
+
+        else:
+            raise('Invalid op_type!')
+                    
         if bboxes.shape[0] == 0:
             return []
         ret = []
